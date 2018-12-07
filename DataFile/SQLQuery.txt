@@ -1,0 +1,209 @@
+USE  BOOKSTORE;
+# 2a. "Find all Book Titles written by Ann Patchett with a price less than $15"
+SELECT B.Title
+FROM BOOK AS B, WRITTENBY AS W, AUTHOR AS A
+WHERE B.ISBN = W.ISBN
+AND W.AuthorID = A.AuthorID
+AND B.Price < 10
+AND A.LName = 'Pratchett' AND A.FName='Ann';
+
+# 2b. Give all the titles and their dates of purchase made by a single customer
+SELECT B.Title, T.BDate
+FROM BOOK AS B, TRANSACTS AS T, CUSTOMER AS C
+WHERE C.CustomerID = 1111111111
+AND T.CustomerID = C.CustomerID
+AND B.ISBN = T.ISBN;
+
+# 2c. Find the titles and ISBNs for all books with less than 5 copies in stock
+SELECT B.Title, B.ISBN
+FROM BOOK AS B, STORES AS S
+WHERE StockNum < 5
+AND B.ISBN = S.ISBN;
+
+# 2d. Give all the customers who purchased a book by Pratchett and the titles of Pratchett books they purchased
+SELECT 	DISTINCT C.CustomerID, C.CFName, C.CLName, B.Title 
+FROM BOOK AS B, WRITTENBY AS W, AUTHOR AS A,  CUSTOMER AS C, TRANSACTS AS T
+WHERE  B.ISBN = W.ISBN
+AND W.AuthorID = A.AuthorID
+AND T.CustomerID = C.CustomerID
+AND T.ISBN = B.ISBN
+AND A.LName = 'Pratchett'
+ORDER BY C.CustomerID;
+
+# 2e. Find the total number of books purchased by a single customer 
+SELECT C.CFName, C.CLName, SUM(T.Quantity)
+FROM CUSTOMER AS C, TRANSACTS AS T
+WHERE T.CustomerID = C.CustomerID
+AND C.CustomerID = 1111111111
+GROUP BY C.CustomerID;
+
+# 2f. Find the customer who has purchased the most books and the total number of books they have purchased
+SELECT Count_Books.CustomerID,Count_Books.CFName, Count_Books.CLName, MAX(S)
+FROM (SELECT C.CustomerID, C.CFname, C.CLname, SUM(Quantity) as S
+	  FROM CUSTOMER AS C, TRANSACTS AS T
+	  WHERE T.CustomerID = C.CustomerID
+	  GROUP BY C.CustomerID) as Count_Books;
+      
+
+/* Below are the extra query about the addtional schema*/
+
+
+# 2.extra1 Show customers names and its contact phone number 
+#   who have bought the amount of the book greater than 3
+SELECT Count_Books.CustomerID,Count_Books.CFName, Count_Books.CLName, Count_Books.S,Count_Books.CPhNum
+FROM (SELECT C.CustomerID, C.CFName, C.CLName,C.CPhNum,SUM(Quantity) as S
+	  FROM CUSTOMER AS C, TRANSACTS AS T
+	  WHERE T.CustomerID = C.CustomerID
+	  GROUP BY C.CustomerID) as Count_Books
+WHERE Count_Books.S > 3; 
+# Join commands
+SELECT Count_Books.CustomerID,Count_Books.CFName, Count_Books.CLName, Count_Books.TotalQuan,Count_Books.CPhNum
+FROM (SELECT C.CustomerID, C.CFname, C.CLname,C.CPhNum,SUM(Quantity) as TotalQuan
+	  FROM CUSTOMER AS C 
+      JOIN TRANSACTS AS T
+	  ON T.CustomerID = C.CustomerID
+	  GROUP BY C.CustomerID) as Count_Books
+WHERE Count_Books.TotalQuan > 3; 
+
+
+# 2.extra2 Show publishers names who have publishesd at least two book stored on my bookstore
+# whose price of each book is greater than 40 by B.Price
+SELECT P.PName, COUNT(P.PubID) AS TotalPub
+FROM BOOK B, PUBLISHER P
+WHERE B.PubID = P.PubID AND B.Price > 40
+GROUP BY P.PubID
+HAVING COUNT(P.PubID)>= 2;
+# Join commands
+SELECT P.PName, COUNT(P.PubID) AS TotalPub
+FROM BOOK AS B
+JOIN PUBLISHER AS P
+ON B.PubID = P.PubID
+WHERE B.Price > 40
+GROUP BY P.PubID
+HAVING COUNT(P.PubID)>= 2;
+
+
+# 3.extra3 Show publishers names who have publishesd books whose price is greater than 40 
+# and the stock is greater than 80
+SELECT P.PName, P.PubID, Count_Stock.TotalStock, B.ISBN, B.Title, B.Price
+FROM BOOK B, PUBLISHER P, (SELECT S.ISBN, SUM(S.StockNum) AS TotalStock
+						   FROM STORES S 
+                           GROUP BY S.ISBN) AS Count_Stock
+WHERE B.PubID = P.PubID AND Count_Stock.ISBN = B.ISBN AND Price > 40 AND Count_Stock.TotalStock > 40
+GROUP BY B.ISBN
+ORDER BY P.PubID, B.Price;
+# Join commands
+SELECT P.PName, P.PubID, Count_Stock.TotalStock, B.ISBN, B.Title, B.Price
+FROM BOOK B 
+JOIN PUBLISHER P ON B.PubID = P.PubID	
+JOIN (SELECT S.ISBN, SUM(S.StockNum) AS TotalStock
+	  FROM STORES S 
+	  GROUP BY S.ISBN) Count_Stock ON Count_Stock.ISBN = B.ISBN	
+WHERE Price > 40 AND Count_Stock.TotalStock > 40
+GROUP BY B.ISBN
+ORDER BY P.PubID, B.Price;
+
+
+/* Below are the advanced query about the addtional schema*/
+
+
+# advanc(a).Provide a list of customer names, along with the total dollar amount each customer has spent.
+SELECT C.CustomerID,C.CFName,C.CLName, SUM(T.Amount) AS TotalConsume
+from CUSTOMER C, TRANSACTS T
+WHERE C.CustomerID = T.CustomerID
+GROUP BY C.CustomerID;
+
+
+# advanc(b).Provide a list of customer names and e-mail addresses for customers who have spent more than the average customer.
+SELECT C.CFName,C.CLName, C.Email, C.CustomerID
+from CUSTOMER C
+JOIN TRANSACTS T ON C.CustomerID = T.CustomerID
+GROUP BY C.CustomerID
+HAVING SUM(T.Amount) > (SELECT AVG(Total.TotalConsume)
+						from (SELECT SUM(T.Amount) AS TotalConsume
+                              FROM CUSTOMER C, TRANSACTS T 
+							  WHERE C.CustomerID = T.CustomerID
+							  GROUP BY C.CustomerID) AS Total);
+
+
+# advanc(c).Provide a list of the titles in the database and associated total copies sold to customers, 
+# sorted from the title that has sold the most individual copies to the title that has sold the least.
+SELECT Title, SUM(T.Quantity) AS AmountSold_Quantity
+FROM BOOK B 
+JOIN  TRANSACTS T
+ON B.ISBN = T.ISBN
+GROUP BY B.ISBN
+ORDER BY AmountSold_Quantity DESC;
+
+
+# advanc(d). Provide a list of the titles in the database and associated dollar totals for copies sold to customers, 
+# sorted from the title that has sold the highest dollar amount to the title that has sold the smallest.
+SELECT Title, SUM(T.AMOUNT) AS AmountSold_Copies
+FROM BOOK B 
+JOIN  TRANSACTS T
+ON B.ISBN = T.ISBN
+GROUP BY B.ISBN
+ORDER BY AmountSold_Copies DESC;
+
+
+# advanc(e).Find the most popular author in the database (i.e. the one who has sold the most books)
+SELECT Author_sold.AuthorID, A.FName, A.LName, Author_sold.AmountlSold
+FROM AUTHOR A, (SELECT SUM(T.Quantity) AS AmountlSold, A.AuthorID
+			    from BOOK B, AUTHOR A, WRITTENBY W,TRANSACTS T
+			    WHERE B.ISBN = W.ISBN AND A.AuthorID = W.AuthorID AND B.ISBN= T.ISBN
+			    GROUP BY A.AuthorID) AS Author_sold
+WHERE A.AuthorID = Author_sold.AuthorID AND Author_sold.AmountlSold =(SELECT MAX(Author_sold.AmountlSold)
+																	  FROM (SELECT SUM(T.Quantity) AS AmountlSold, A.AuthorID
+																			from BOOK B, AUTHOR A, WRITTENBY W,TRANSACTS T
+																			WHERE B.ISBN = W.ISBN AND A.AuthorID = W.AuthorID AND B.ISBN= T.ISBN
+																			GROUP BY A.AuthorID) AS Author_sold);
+
+
+# advanc(f).Find the most profitable author in the database for this store (i.e. the one who has brought in the most money)
+SELECT Author_sold.AuthorID, A.FName, A.LName, Author_sold.AmountlSold
+FROM AUTHOR A, (SELECT SUM(T.Amount) AS AmountlSold, A.AuthorID
+			    from BOOK B, AUTHOR A, WRITTENBY W,TRANSACTS T
+			    WHERE B.ISBN = W.ISBN AND A.AuthorID = W.AuthorID AND B.ISBN= T.ISBN
+			    GROUP BY A.AuthorID) AS Author_sold
+WHERE A.AuthorID = Author_sold.AuthorID AND Author_sold.AmountlSold =(SELECT MAX(Author_sold.AmountlSold)
+																	  FROM (SELECT SUM(T.Amount) AS AmountlSold, A.AuthorID
+																			from BOOK B, AUTHOR A, WRITTENBY W,TRANSACTS T
+																			WHERE B.ISBN = W.ISBN AND A.AuthorID = W.AuthorID AND B.ISBN= T.ISBN
+																			GROUP BY A.AuthorID) AS Author_sold);
+
+
+# advanc(g).Provide a list of customer information for customers who purchased anything written by the most profitable author in the database.
+SELECT distinct C.CustomerID, C.CFName, C.CLName, C.CPhNum 
+from BOOK B, AUTHOR A, WRITTENBY W,TRANSACTS T, CUSTOMER C
+WHERE B.ISBN = W.ISBN AND A.AuthorID = W.AuthorID AND B.ISBN= T.ISBN AND C.CustomerID= T.CustomerID
+AND A.AuthorID=(SELECT Author_sold.AuthorID
+				FROM AUTHOR A, (SELECT SUM(T.Amount) AS AmountlSold, A.AuthorID
+							from BOOK B, AUTHOR A, WRITTENBY W,TRANSACTS T
+							WHERE B.ISBN = W.ISBN AND A.AuthorID = W.AuthorID AND B.ISBN= T.ISBN
+							GROUP BY A.AuthorID) AS Author_sold
+				WHERE A.AuthorID = Author_sold.AuthorID AND Author_sold.AmountlSold =(SELECT MAX(Author_sold.AmountlSold)
+																					  FROM (SELECT SUM(T.Amount) AS AmountlSold
+																							FROM BOOK B, AUTHOR A, WRITTENBY W,TRANSACTS T
+																							WHERE B.ISBN = W.ISBN AND A.AuthorID = W.AuthorID AND B.ISBN= T.ISBN
+																							GROUP BY A.AuthorID) AS Author_sold) 
+			   )
+ORDER BY C.CustomerID;
+
+
+# advanc(h).Provide the list of authors who wrote the books purchased by the customers who have spent more than the average customer.
+SELECT DISTINCT A.AuthorID, A.FName, A.LName
+from CUSTOMER C
+JOIN TRANSACTS T ON C.CustomerID = T.CustomerID
+JOIN BOOK B ON T.ISBN = B.ISBN
+JOIN WRITTENBY W ON W.ISBN = B.ISBN
+JOIN AUTHOR A ON A.AuthorID= W.AuthorID
+WHERE C.CustomerID IN (SELECT C.CustomerID
+					   from CUSTOMER C
+					   JOIN TRANSACTS T ON C.CustomerID = T.CustomerID
+					   GROUP BY C.CustomerID
+					   HAVING SUM(T.Amount) > (SELECT AVG(Total.TotalConsume)
+											   from (SELECT SUM(T.Amount) AS TotalConsume
+											   FROM CUSTOMER C, TRANSACTS T 
+											   WHERE C.CustomerID = T.CustomerID
+											   GROUP BY C.CustomerID) AS Total) 
+					  );
