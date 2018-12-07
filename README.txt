@@ -1,8 +1,8 @@
 Online Books Database - CSE 3241 
 
 Group Members:
+• Qiheng Chen
 • Tongshuai Zhang
-• Qiheng chen
 
 
 PART 1:
