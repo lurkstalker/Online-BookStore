@@ -1,0 +1,22 @@
+SECTION 3:Graded checkpoints documents:(Note: all the updates are in the Section01 "Final Report.doc")
+
+An appendix to the final report that MUST contain all your original, graded checkpoint documents organized in a neat and professional manner. For each checkpoint that required a revision, you MUST include a revision for that checkpoint.  This revision may be a pointer to where in the final database document the “fixed” version of the checkpoint resides (“See Section X Page Y for the new relational model diagram” for example).
+CHECKPOINT 01: 
+Revised the relational schema and ER diagram 
+See Section 3. Page 35: "Revised ER diagram for Check01”.
+See Section 3. Page 38: "Revised Relational Schema for Check01" 
+CHECKPOINT 02:
+Revised the relational schema and ER diagram, also revised the relational algebra of the whole database
+See Section 3. Page 36: “Revised ER diagram for Check02”.
+See Section 3  Page 38: "Revised Relational Schema for Check02"
+CHECKPOINT 03:
+Revised the relational schema and ER diagram and give hints about the notation.
+And revised the code logic for query
+See Section 3. Page 37: “Revised ER diagram for Check03”.
+See Section 3. Page 38: "Revised Relational Schema for Check03"
+See Section 2. Page 13: "B. Sample SQL queries"
+CHECKPOINT 04:
+Revised the relational schema and ER diagram. Besides, correct the grammar of creating a view
+See Section 1. Page 2: "Database description" to see the changes in ER diagram.
+See Section 1. Page 2: "Relational Schema" to see the changes of the schema.
+See Section 1. Page 7: "View Description" to see the changes of view operation.
