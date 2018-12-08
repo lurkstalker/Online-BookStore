@@ -3,7 +3,12 @@ Online Books Database - CSE 3241
 Group Members:
 • Qiheng Chen
 • Tongshuai Zhang
+• Yuliang Fu
+• Han Han
 
+Designer and query coder: Tongshuai Zhang, Qiheng Chen
+Format Check: Yuliang Fu
+Create Data: Han Han
 
 PART 1:
 --------------------------------------------------------
